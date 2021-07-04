@@ -8,6 +8,13 @@
 #include <vector>
 #include <iostream>
 
+struct vk_device
+{
+	VkPhysicalDevice physical_device = VK_NULL_HANDLE;
+	VkPhysicalDeviceProperties propertie{};
+	std::vector<VkQueueFamilyProperties> family_properties;
+};
+
 class vulkan_app
 {
 public:
@@ -20,7 +27,7 @@ public:
 		cleanup();
 	}
 
-	vulkan_app(vulkan_app&) = delete;
+	vulkan_app(const vulkan_app&) = delete;
 	void operator=(vulkan_app&) = delete;
 
 	void run()
@@ -37,17 +44,54 @@ private:
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		window = glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
+
 		init_vulkan();
 	}
 
 	void init_vulkan()
 	{
+		create_instance();
+		pickPhysicalDevice();
+	}
 
+	void pickPhysicalDevice() 
+	{
+		uint32_t deviceCount = 0;
+		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+		if (deviceCount == 0) 
+		{
+			throw std::runtime_error("failed to find GPUs with Vulkan support!");
+		}
+
+		std::vector<VkPhysicalDevice> devices(deviceCount);
+		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+		devices_.resize(deviceCount);
+
+		int i = 0;
+		for (auto& device : devices)
+		{
+			devices_[i].physical_device = device;
+			vkGetPhysicalDeviceProperties(device, &devices_[i].propertie);
+		}
+	}
+
+	void create_instance()
+	{
 		VkApplicationInfo app_info{};
-		init_app_info(app_info);
+		app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+		app_info.pApplicationName = "Hello Triangle";
+		app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+		app_info.pEngineName = "No Engine";
+		app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+		app_info.apiVersion = VK_API_VERSION_1_0;
 
 		VkInstanceCreateInfo create_info{};
-		init_create_info(create_info, app_info);
+		create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+		create_info.pApplicationInfo = &app_info;
+		create_info.ppEnabledExtensionNames = glfwGetRequiredInstanceExtensions(&create_info.enabledExtensionCount);
+		create_info.enabledLayerCount = 0;
 
 		if (vkCreateInstance(&create_info, nullptr, &instance) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create instance!");
@@ -56,29 +100,6 @@ private:
 		init_extensions();
 	}
 
-	void init_app_info(VkApplicationInfo& app_info)
-	{
-		app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-		app_info.pApplicationName = "Hello Triangle";
-		app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-		app_info.pEngineName = "No Engine";
-		app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		app_info.apiVersion = VK_API_VERSION_1_0;
-	}
-
-	void init_create_info(VkInstanceCreateInfo& create_info, VkApplicationInfo& app_info)
-	{
-		create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-		create_info.pApplicationInfo = &app_info;
-
-		uint32_t glfwExtensionCount = 0;
-		const char** glfwExtensions;
-		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-		create_info.enabledExtensionCount = glfwExtensionCount;
-		create_info.ppEnabledExtensionNames = glfwExtensions;
-		create_info.enabledLayerCount = 0;
-	}
 
 	void init_extensions()
 	{
@@ -86,7 +107,6 @@ private:
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 
 		extensions.resize(extensionCount);
-
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
 
 		std::cout << "available extensions:\n";
@@ -102,6 +122,8 @@ private:
 		glfwTerminate();
 	}
 
+
+
 private:
 
 	uint32_t width = 800;
@@ -110,4 +132,6 @@ private:
 
 	VkInstance instance;
 	std::vector<VkExtensionProperties> extensions;
+
+	std::vector<vk_device> devices_;
 };
