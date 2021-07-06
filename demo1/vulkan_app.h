@@ -8,12 +8,7 @@
 #include <vector>
 #include <iostream>
 
-struct vk_device
-{
-	VkPhysicalDevice physical_device = VK_NULL_HANDLE;
-	VkPhysicalDeviceProperties propertie{};
-	std::vector<VkQueueFamilyProperties> family_properties;
-};
+#include "vk_device.h"
 
 class vulkan_app
 {
@@ -56,25 +51,7 @@ private:
 
 	void pickPhysicalDevice() 
 	{
-		uint32_t deviceCount = 0;
-		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-
-		if (deviceCount == 0) 
-		{
-			throw std::runtime_error("failed to find GPUs with Vulkan support!");
-		}
-
-		std::vector<VkPhysicalDevice> devices(deviceCount);
-		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-
-		devices_.resize(deviceCount);
-
-		int i = 0;
-		for (auto& device : devices)
-		{
-			devices_[i].physical_device = device;
-			vkGetPhysicalDeviceProperties(device, &devices_[i].propertie);
-		}
+		devices.init(instance);
 	}
 
 	void create_instance()
@@ -130,8 +107,8 @@ private:
 	uint32_t height = 600;
 	GLFWwindow* window = nullptr;
 
-	VkInstance instance;
 	std::vector<VkExtensionProperties> extensions;
 
-	std::vector<vk_device> devices_;
+	VkInstance instance;
+	vk_device devices;
 };
