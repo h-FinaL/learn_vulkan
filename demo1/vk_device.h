@@ -8,7 +8,14 @@ class vk_device
 {
 public:
 	vk_device() {}
-	~vk_device() {}
+	~vk_device() 
+	{
+		for (auto& device : _devices)
+		{
+			vkDeviceWaitIdle(device._logical_device);
+			vkDestroyDevice(device._logical_device, nullptr);
+		}
+	}
 
 	void init(VkInstance instance)
 	{

@@ -4,7 +4,6 @@
 #include <iostream>
 #include "vulkan_app.h"
 
-
 int main()
 {
 	vulkan_app app;
