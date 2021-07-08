@@ -51,6 +51,8 @@ public:
 
 			vkCreateDevice(physical_device, &_device_create_info, nullptr, &_devices[i]._logical_device);
 
+			vkCreateBuffer(_devices[i]._logical_device, &_buffer_create_info, nullptr, &_devices[i]._buffer);
+
 			i++;
 		}
 	}
@@ -92,6 +94,18 @@ public:
 		_device_queue_create_info.pQueuePriorities = nullptr;
 	}
 
+	void init_buffer_create_info()
+	{
+		_buffer_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		_buffer_create_info.pNext = nullptr;
+		_buffer_create_info.flags = 0;
+		_buffer_create_info.size = 1024 * 1024;
+		_buffer_create_info.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		_buffer_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		_buffer_create_info.queueFamilyIndexCount = 0;
+		_buffer_create_info.pQueueFamilyIndices = nullptr;
+	}
+
 private:
 	struct info
 	{
@@ -100,9 +114,11 @@ private:
 		VkPhysicalDeviceProperties _propertie{};
 		std::vector<VkQueueFamilyProperties> _family_properties;
 		VkPhysicalDeviceFeatures _supported_features;
+		VkBuffer _buffer = VK_NULL_HANDLE;
 	};
 
 	std::vector<info> _devices;
 	VkDeviceQueueCreateInfo _device_queue_create_info{};
 	VkDeviceCreateInfo _device_create_info{};
+	VkBufferCreateInfo _buffer_create_info{};
 };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vulkan/vulkan_core.h>
+#include <malloc.h>
 
 class vk_allocator
 {
@@ -25,7 +26,7 @@ public:
 		size_t                                      alignment,
 		VkSystemAllocationScope                     allocationScope)
 	{
-
+		static_cast<vk_allocator*>(pUserData)->allocation(size, alignment, allocationScope);
 	}
 
 	static void* VKAPI_CALL reallocation(
@@ -35,13 +36,37 @@ public:
 		size_t                                      alignment,
 		VkSystemAllocationScope                     allocationScope)
 	{
-
+		static_cast<vk_allocator*>(pUserData)->reallocation(pOriginal, size, alignment, allocationScope);
 	}
 
 	static void VKAPI_CALL free(
 		void* pUserData,
 		void* pMemory)
 	{
+		static_cast<vk_allocator*>(pUserData)->free(pMemory);
+	}
 
+private:
+	void* allocation(
+		size_t                                      size,
+		size_t                                      alignment,
+		VkSystemAllocationScope                     allocationScop)
+	{
+		return _aligned_malloc(size, alignment);
+	}
+
+	void free(
+		void* pMemory)
+	{
+		return _aligned_free(pMemory);
+	}
+
+	void* reallocation(
+		void* pOriginal,
+		size_t                                      size,
+		size_t                                      alignment,
+		VkSystemAllocationScope                     allocationScope)
+	{
+		return _aligned_realloc(pOriginal, size, allocationScope);
 	}
 };
