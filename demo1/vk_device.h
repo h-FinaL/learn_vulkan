@@ -37,19 +37,20 @@ public:
 		int i = 0;
 		for (auto& physical_device : physical_devices)
 		{
+
 			_devices[i]._physical_device = physical_device;
 			vkGetPhysicalDeviceProperties(physical_device, &_devices[i]._propertie);
 
 			_devices[i]._family_properties = init_family_properties(physical_device);
 			vkGetPhysicalDeviceFeatures(physical_device, &_devices[i]._supported_features);
 
-			VkPhysicalDeviceFeatures required_features;
+			VkPhysicalDeviceFeatures required_features{};
 			required_features.multiDrawIndirect = _devices[i]._supported_features.multiDrawIndirect;
 			required_features.tessellationShader = VK_TRUE;
 			required_features.geometryShader = VK_TRUE;
 			_device_create_info.pEnabledFeatures = &required_features;
 
-			vkCreateDevice(physical_device, &_device_create_info, nullptr, &_devices[i]._logical_device);
+			VkResult res = vkCreateDevice(physical_device, &_device_create_info, nullptr, &_devices[i]._logical_device);
 
 			vkCreateBuffer(_devices[i]._logical_device, &_buffer_create_info, nullptr, &_devices[i]._buffer);
 
@@ -80,13 +81,15 @@ public:
 		_device_create_info.queueCreateInfoCount = 1;
 		_device_create_info.pQueueCreateInfos = &_device_queue_create_info;
 		_device_create_info.enabledLayerCount = 0;
-		_device_create_info.ppEnabledExtensionNames = 0;
+		_device_create_info.ppEnabledLayerNames = nullptr;
+		_device_create_info.enabledExtensionCount = 0;
+		_device_create_info.ppEnabledExtensionNames = nullptr;
 		_device_create_info.pEnabledFeatures = nullptr;
 	}
 
 	void init_device_queue_create_info()
 	{
-		_device_queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+		_device_queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 		_device_queue_create_info.pNext = nullptr;
 		_device_queue_create_info.flags = 0;
 		_device_queue_create_info.queueFamilyIndex = 0;
