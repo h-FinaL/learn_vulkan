@@ -7,14 +7,54 @@
 class vk_device
 {
 public:
+	vk_device(const vk_device&) = delete;
+	void operator=(const vk_device&) = delete;
+
 	vk_device() {}
+	vk_device(vk_device&& device) noexcept
+	{
+		_physical_device = device._physical_device;
+		_propertie = device._propertie;
+		_family_properties = std::move(device._family_properties);
+		_supported_features = device._supported_features;
+		_logical_device = device._logical_device;
+		_buffer = device._buffer;
+
+		device._logical_device = VK_NULL_HANDLE;
+		device._buffer = VK_NULL_HANDLE;
+	}
+
 	~vk_device() 
 	{
-		for (auto& device : _devices)
+		destroy_device();
+	}
+
+	void destroy_device()
+	{
+		if (_logical_device != nullptr)
 		{
-			vkDeviceWaitIdle(device._logical_device);
-			vkDestroyDevice(device._logical_device, nullptr);
+			vkDeviceWaitIdle(_logical_device);
+			vkDestroyDevice(_logical_device, nullptr);
 		}
+	}
+
+	void init(vk_device& device)
+	{
+
+		_physical_device = device._physical_device;
+		_propertie = device._propertie;
+		_family_properties = device._family_properties;
+		_supported_features = device._supported_features;
+
+		VkPhysicalDeviceFeatures required_features{};
+		required_features.multiDrawIndirect = _supported_features.multiDrawIndirect;
+		required_features.tessellationShader = VK_TRUE;
+		required_features.geometryShader = VK_TRUE;
+		_device_create_info.pEnabledFeatures = &required_features;
+		vkCreateDevice(_physical_device, &_device_create_info, nullptr, &_logical_device);
+		vkCreateBuffer(_logical_device, &_buffer_create_info, nullptr, &_buffer);
+
+		device.destroy_device();
 	}
 
 	void init(VkInstance instance)
@@ -27,35 +67,31 @@ public:
 			throw std::runtime_error("failed to find GPUs with Vulkan support!");
 		}
 
-		std::vector<VkPhysicalDevice> physical_devices(count);
+		std::vector<VkPhysicalDevice> physical_devices;
+		physical_devices.resize(count);
 		vkEnumeratePhysicalDevices(instance, &count, physical_devices.data());
 
+		_all_deviecs.resize(count);
+
+		for (int i = 0; i < count; i++)
+		{
+			_all_deviecs[i].init_self(physical_devices[i]);
+		}
+
+		init(_all_deviecs[0]);
+	}
+
+
+private:
+	void init_self(VkPhysicalDevice physical_device)
+	{
 		init_device_create_info();
 
-		_devices.resize(count);
+		_physical_device = physical_device;
+		vkGetPhysicalDeviceProperties(physical_device, &_propertie);
 
-		int i = 0;
-		for (auto& physical_device : physical_devices)
-		{
-
-			_devices[i]._physical_device = physical_device;
-			vkGetPhysicalDeviceProperties(physical_device, &_devices[i]._propertie);
-
-			_devices[i]._family_properties = init_family_properties(physical_device);
-			vkGetPhysicalDeviceFeatures(physical_device, &_devices[i]._supported_features);
-
-			VkPhysicalDeviceFeatures required_features{};
-			required_features.multiDrawIndirect = _devices[i]._supported_features.multiDrawIndirect;
-			required_features.tessellationShader = VK_TRUE;
-			required_features.geometryShader = VK_TRUE;
-			_device_create_info.pEnabledFeatures = &required_features;
-
-			VkResult res = vkCreateDevice(physical_device, &_device_create_info, nullptr, &_devices[i]._logical_device);
-
-			vkCreateBuffer(_devices[i]._logical_device, &_buffer_create_info, nullptr, &_devices[i]._buffer);
-
-			i++;
-		}
+		_family_properties = init_family_properties(physical_device);
+		vkGetPhysicalDeviceFeatures(physical_device, &_supported_features);
 	}
 
 	std::vector<VkQueueFamilyProperties> init_family_properties(VkPhysicalDevice physical_device)
@@ -110,18 +146,23 @@ public:
 	}
 
 private:
-	struct info
-	{
-		VkPhysicalDevice _physical_device = VK_NULL_HANDLE;
-		VkDevice _logical_device = VK_NULL_HANDLE;
-		VkPhysicalDeviceProperties _propertie{};
-		std::vector<VkQueueFamilyProperties> _family_properties;
-		VkPhysicalDeviceFeatures _supported_features;
-		VkBuffer _buffer = VK_NULL_HANDLE;
-	};
-
-	std::vector<info> _devices;
 	VkDeviceQueueCreateInfo _device_queue_create_info{};
 	VkDeviceCreateInfo _device_create_info{};
 	VkBufferCreateInfo _buffer_create_info{};
+
+	//物理设备
+	VkPhysicalDevice _physical_device = VK_NULL_HANDLE;
+	//逻辑设备
+	VkDevice _logical_device = VK_NULL_HANDLE;
+	//设备信息
+	VkPhysicalDeviceProperties _propertie{};
+	//队列族信息
+	std::vector<VkQueueFamilyProperties> _family_properties;
+	//物理设备特性
+	VkPhysicalDeviceFeatures _supported_features;
+	//设备缓存
+	VkBuffer _buffer = VK_NULL_HANDLE;
+
+	//所有设备
+	std::vector<vk_device> _all_deviecs;
 };

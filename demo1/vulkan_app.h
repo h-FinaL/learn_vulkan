@@ -1,12 +1,17 @@
 #pragma once
 
+#define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
+
+#include <vulkan/vulkan_win32.h>
 
 #include <stdexcept>
 #include <vector>
 #include <iostream>
+#include <optional>
 
 #include "vk_device.h"
 
@@ -46,6 +51,7 @@ private:
 	void init_vulkan()
 	{
 		create_instance();
+		create_surface();
 		pickPhysicalDevice();
 	}
 
@@ -77,6 +83,29 @@ private:
 		init_extensions();
 	}
 
+	void create_surface()
+	{
+		VkWin32SurfaceCreateInfoKHR create_info{};
+		create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+		create_info.hwnd = glfwGetWin32Window(window);
+		create_info.hinstance = GetModuleHandle(nullptr);
+
+		if (vkCreateWin32SurfaceKHR(instance, &create_info, nullptr, &surface) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create window surface!");
+		}
+
+		struct QueueFamilyIndices {
+			std::optional<uint32_t> graphicsFamily;
+			std::optional<uint32_t> presentFamily;
+
+			bool isComplete() {
+				return graphicsFamily.has_value() && presentFamily.has_value();
+			}
+		};
+
+		VkBool32 presentSupport = false;
+		//vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+	}
 
 	void init_extensions()
 	{
@@ -94,6 +123,7 @@ private:
 
 	void cleanup() 
 	{
+		vkDestroySurfaceKHR(instance, surface, nullptr);
 		vkDestroyInstance(instance, nullptr);
 		glfwDestroyWindow(window);
 		glfwTerminate();
@@ -111,4 +141,5 @@ private:
 
 	VkInstance instance;
 	vk_device devices;
+	VkSurfaceKHR surface;
 };
