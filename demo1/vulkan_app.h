@@ -32,7 +32,7 @@ public:
 
 	void run()
 	{
-		while (!glfwWindowShouldClose(window)) {
+		while (!glfwWindowShouldClose(_window)) {
 			glfwPollEvents();
 		}
 	}
@@ -43,7 +43,7 @@ private:
 		glfwInit();
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-		window = glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
+		_window = glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
 
 		init_vulkan();
 	}
@@ -57,7 +57,7 @@ private:
 
 	void pickPhysicalDevice() 
 	{
-		devices.init(instance);
+		_devices.init(_instance);
 	}
 
 	void create_instance()
@@ -76,7 +76,7 @@ private:
 		create_info.ppEnabledExtensionNames = glfwGetRequiredInstanceExtensions(&create_info.enabledExtensionCount);
 		create_info.enabledLayerCount = 0;
 
-		if (vkCreateInstance(&create_info, nullptr, &instance) != VK_SUCCESS) {
+		if (vkCreateInstance(&create_info, nullptr, &_instance) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create instance!");
 		}
 
@@ -87,11 +87,11 @@ private:
 	{
 		VkWin32SurfaceCreateInfoKHR create_info{};
 		create_info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-		create_info.hwnd = glfwGetWin32Window(window);
+		create_info.hwnd = glfwGetWin32Window(_window);
 		create_info.hinstance = GetModuleHandle(nullptr);
 
-		if (vkCreateWin32SurfaceKHR(instance, &create_info, nullptr, &surface) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create window surface!");
+		if (vkCreateWin32SurfaceKHR(_instance, &create_info, nullptr, &_surface) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create _window surface!");
 		}
 
 		struct QueueFamilyIndices {
@@ -104,7 +104,7 @@ private:
 		};
 
 		VkBool32 presentSupport = false;
-		//vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+		vkGetPhysicalDeviceSurfaceSupportKHR(_devices.get_device(), i, _surface, &presentSupport);
 	}
 
 	void init_extensions()
@@ -123,9 +123,9 @@ private:
 
 	void cleanup() 
 	{
-		vkDestroySurfaceKHR(instance, surface, nullptr);
-		vkDestroyInstance(instance, nullptr);
-		glfwDestroyWindow(window);
+		vkDestroySurfaceKHR(_instance, _surface, nullptr);
+		vkDestroyInstance(_instance, nullptr);
+		glfwDestroyWindow(_window);
 		glfwTerminate();
 	}
 
@@ -135,11 +135,11 @@ private:
 
 	uint32_t width = 800;
 	uint32_t height = 600;
-	GLFWwindow* window = nullptr;
+	GLFWwindow* _window = nullptr;
 
 	std::vector<VkExtensionProperties> extensions;
 
-	VkInstance instance;
-	vk_device devices;
-	VkSurfaceKHR surface;
+	VkInstance _instance;
+	vk_device _devices;
+	VkSurfaceKHR _surface;
 };
