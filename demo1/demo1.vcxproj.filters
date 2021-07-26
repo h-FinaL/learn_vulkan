@@ -18,6 +18,18 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="vk_instance.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_device.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_context.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="vk_led.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vulkan_app.h">
@@ -27,6 +39,15 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="vk_allocator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_instance.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_context.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="vk_led.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
