@@ -22,11 +22,11 @@ struct vk_layer_properties
 	std::vector<VkExtensionProperties> extensions;
 };
 
-class vk_layer_extension
+class vk_led
 {
 public:
-	vk_layer_extension();
-	~vk_layer_extension() {};
+	vk_led();
+	~vk_led() {};
 
 	std::vector<vk_layer_properties> get_instance_layer_properties();
 
@@ -42,8 +42,6 @@ public:
 	std::vector<VkExtensionProperties> extensions;
 
 	std::vector<vk_layer_properties> _layer_property_list;
-
-
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugFunction(VkFlags msgFlags,
 		VkDebugReportObjectTypeEXT objType,

@@ -13,11 +13,13 @@ public:
 	{
 		VkAllocationCallbacks result;
 		result.pUserData = (void*)this;
-		result.pfnAllocation = &allocation;
-		result.pfnReallocation = &reallocation;
-		result.pfnFree = &free;
+		result.pfnAllocation = &vk_allocator::allocation;
+		result.pfnReallocation = &vk_allocator::reallocation;
+		result.pfnFree = &vk_allocator::free;
 		result.pfnInternalAllocation = nullptr;
 		result.pfnInternalFree = nullptr;
+
+		return result;
 	}
 
 	static void* VKAPI_CALL allocation(
@@ -26,7 +28,8 @@ public:
 		size_t                                      alignment,
 		VkSystemAllocationScope                     allocationScope)
 	{
-		static_cast<vk_allocator*>(pUserData)->allocation(size, alignment, allocationScope);
+		std::cout << size << std::endl;
+		return static_cast<vk_allocator*>(pUserData)->allocation(size, alignment, allocationScope);
 	}
 
 	static void* VKAPI_CALL reallocation(
@@ -36,7 +39,7 @@ public:
 		size_t                                      alignment,
 		VkSystemAllocationScope                     allocationScope)
 	{
-		static_cast<vk_allocator*>(pUserData)->reallocation(pOriginal, size, alignment, allocationScope);
+		return static_cast<vk_allocator*>(pUserData)->reallocation(pOriginal, size, alignment, allocationScope);
 	}
 
 	static void VKAPI_CALL free(

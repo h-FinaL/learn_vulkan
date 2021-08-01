@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include "vulkan_app.h"
+#include "vk_allocator.h"
+
 
 int main()
 {

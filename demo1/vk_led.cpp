@@ -16,7 +16,7 @@ const char* layer_name_str[] = {
 };
 
 
-vk_layer_extension::vk_layer_extension() 
+vk_led::vk_led() 
 {
 	uint32_t instance_layer_cout;
 	vkEnumerateInstanceLayerProperties(&instance_layer_cout, nullptr);
@@ -26,7 +26,7 @@ vk_layer_extension::vk_layer_extension()
 	vkEnumerateInstanceLayerProperties(&instance_layer_cout, properties.data());
 }
 
-std::vector<vk_layer_properties> vk_layer_extension::get_instance_layer_properties()
+std::vector<vk_layer_properties> vk_led::get_instance_layer_properties()
 {
 	std::vector<vk_layer_properties> layer_properties_list;
 
@@ -58,7 +58,7 @@ std::vector<vk_layer_properties> vk_layer_extension::get_instance_layer_properti
 }
 
 
-VkResult vk_layer_extension::get_extension_properties(vk_layer_properties& layer_pros, VkPhysicalDevice gpu = nullptr)
+VkResult vk_led::get_extension_properties(vk_layer_properties& layer_pros, VkPhysicalDevice gpu)
 {
 	uint32_t extension_count;
 	VkResult result;
@@ -94,7 +94,7 @@ VkResult vk_layer_extension::get_extension_properties(vk_layer_properties& layer
 	return result;
 }
 
-bool vk_layer_extension::are_layers_supported(std::vector<vk_layer_name>& layer_name)
+bool vk_led::are_layers_supported(std::vector<vk_layer_name>& layer_name)
 {
 	uint32_t check_cout = layer_name.size();
 	uint32_t layer_cout = _layer_property_list.size();
@@ -115,11 +115,13 @@ bool vk_layer_extension::are_layers_supported(std::vector<vk_layer_name>& layer_
 			}
 		}
 	}
+
+	return false;
 }
 
 
 VKAPI_ATTR VkBool32 VKAPI_CALL
-vk_layer_extension::debugFunction(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,
+vk_led::debugFunction(VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,
 	uint64_t srcObject, size_t location, int32_t msgCode,
 	const char* layerPrefix, const char* msg, void* userData) {
 
@@ -146,10 +148,10 @@ vk_layer_extension::debugFunction(VkFlags msgFlags, VkDebugReportObjectTypeEXT o
 	return VK_TRUE;
 }
 
-VkResult vk_layer_extension::create_debug_report_callback()
+VkResult vk_led::create_debug_report_callback()
 {
 
-	VkInstance instance;
+	VkInstance instance = VK_NULL_HANDLE;
 
 	_dbg_create_debug_report_callback = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugReportCallbackEXT");
 	if (!_dbg_create_debug_report_callback) {
@@ -176,6 +178,6 @@ VkResult vk_layer_extension::create_debug_report_callback()
 		VK_DEBUG_REPORT_DEBUG_BIT_EXT;
 }
 
-void vk_layer_extension::destroyDebugReportCallback()
+void vk_led::destroyDebugReportCallback()
 {
 }

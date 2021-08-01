@@ -1,8 +1,21 @@
 #include "vk_instance.h"
+#include "vk_context.h"
 #include "GLFW/glfw3.h"
 #include <stdexcept>
 
-VkResult vk_instance::create_instance(std::vector<const char*>& layers, std::vector<const char* >& extensions, const char* applicationName)
+
+vk_instance::vk_instance(vk_context* context) :
+	_context(context)
+{
+	if (_context == nullptr)
+		return;
+
+	_led = _context->_led;
+
+	init();
+}
+
+VkResult vk_instance::init()
 {
 
 	VkApplicationInfo app_info{};

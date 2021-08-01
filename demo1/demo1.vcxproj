@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="vk_buffer.cpp" />
     <ClCompile Include="vk_context.cpp" />
     <ClCompile Include="vk_device.cpp" />
     <ClCompile Include="vk_instance.cpp" />
@@ -155,6 +156,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vk_allocator.h" />
+    <ClInclude Include="vk_buffer.h" />
     <ClInclude Include="vk_context.h" />
     <ClInclude Include="vk_device.h" />
     <ClInclude Include="vk_instance.h" />

@@ -5,7 +5,7 @@ void vk_buffer::allocCommandBuffer(const VkDevice* device,
 	const VkCommandPool cmdPool,
 	VkCommandBuffer* cmdBuf,
 	const VkCommandBufferAllocateInfo*
-	commandBufferInfo = NULL)
+	commandBufferInfo)
 {
 	VkResult result;
 	if (commandBufferInfo)
@@ -25,7 +25,7 @@ void vk_buffer::allocCommandBuffer(const VkDevice* device,
 }
 
 void vk_buffer::beginCommandBuffer(VkCommandBuffer cmdBuf,
-	VkCommandBufferBeginInfo* inCmdBufInfo = NULL)
+	VkCommandBufferBeginInfo* inCmdBufInfo)
 {
 	VkResult result;
 	if (inCmdBufInfo)
@@ -61,8 +61,8 @@ void vk_buffer::endCommandBuffer(VkCommandBuffer cmdBuf)
 
 void vk_buffer::submitCommandBuffer(const VkQueue& queue,
 	const VkCommandBuffer* cmdBufList,
-	const VkSubmitInfo* in_submit_info = NULL,
-	const VkFence& fence = VK_NULL_HANDLE)
+	const VkSubmitInfo* in_submit_info,
+	const VkFence& fence)
 {
 	VkResult result;
 	if (in_submit_info)

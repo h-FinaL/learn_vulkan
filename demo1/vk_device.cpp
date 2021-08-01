@@ -1,35 +1,45 @@
 #include "vk_device.h"
+#include "vk_instance.h"
 
-
-vk_device::vk_device(vk_device&& device) noexcept
+vk_device::vk_device(vk_context* context) :
+	_context(context)
 {
-	_gpu = device._gpu;
-	_props = device._props;
-	_que_family_props = std::move(device._que_family_props);
-	_supported_features = device._supported_features;
-	_device = device._device;
-	_buffer = device._buffer;
-
-	device._device = VK_NULL_HANDLE;
-	device._buffer = VK_NULL_HANDLE;
+	init();
 }
 
-void vk_device::destroy_device()
+
+vk_device::~vk_device() 
 {
-	if (_device != nullptr)
+	vkDeviceWaitIdle(_device);
+	vkDestroyDevice(_device, nullptr);
+}
+
+void vk_device::init()
+{
+	vk_instance* instance = _context->_instance;
+
+	uint32_t count = 0;
+	vkEnumeratePhysicalDevices(instance->get_instance(), &count, nullptr);
+
+	if (count == 0)
 	{
-		vkDeviceWaitIdle(_device);
-		vkDestroyDevice(_device, nullptr);
+		throw std::runtime_error("failed to find GPUs with Vulkan support!");
 	}
-}
 
-void vk_device::init(vk_device& device)
-{
+	std::vector<VkPhysicalDevice> gpus;
+	gpus.resize(count);
+	vkEnumeratePhysicalDevices(instance->get_instance(), &count, gpus.data());
 
-	_gpu = device._gpu;
-	_props = device._props;
-	_que_family_props = device._que_family_props;
-	_supported_features = device._supported_features;
+	//_all_deviecs.resize(count);
+
+	//for (int i = 0; i < count; i++)
+	//{
+	//	_all_deviecs[i].init_attribute(physical_devices[i]);
+	//}
+
+	//init(_all_deviecs[0]);
+
+	init_attribute(gpus[0]);
 
 	VkPhysicalDeviceFeatures required_features{};
 	required_features.multiDrawIndirect = _supported_features.multiDrawIndirect;
@@ -59,7 +69,6 @@ void vk_device::init(vk_device& device)
 	device_create.pEnabledFeatures = &required_features;
 	vkCreateDevice(_gpu, &device_create, nullptr, &_device);
 
-
 	VkBufferCreateInfo buf_create{};
 	buf_create.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	buf_create.pNext = nullptr;
@@ -70,32 +79,6 @@ void vk_device::init(vk_device& device)
 	buf_create.queueFamilyIndexCount = 0;
 	buf_create.pQueueFamilyIndices = nullptr;
 	vkCreateBuffer(_device, &buf_create, nullptr, &_buffer);
-
-	device.destroy_device();
-}
-
-void vk_device::init(VkInstance instance)
-{
-	uint32_t count = 0;
-	vkEnumeratePhysicalDevices(instance, &count, nullptr);
-
-	if (count == 0)
-	{
-		throw std::runtime_error("failed to find GPUs with Vulkan support!");
-	}
-
-	std::vector<VkPhysicalDevice> physical_devices;
-	physical_devices.resize(count);
-	vkEnumeratePhysicalDevices(instance, &count, physical_devices.data());
-
-	_all_deviecs.resize(count);
-
-	for (int i = 0; i < count; i++)
-	{
-		_all_deviecs[i].init_attribute(physical_devices[i]);
-	}
-
-	init(_all_deviecs[0]);
 }
 
 void vk_device::init_attribute(VkPhysicalDevice gpu)

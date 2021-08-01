@@ -3,6 +3,7 @@
 #include <vulkan/vulkan_core.h>
 #include <vector>
 #include <stdexcept>
+#include "vk_context.h"
 
 class vk_device
 {
@@ -10,19 +11,14 @@ public:
 	vk_device(const vk_device&) = delete;
 	void operator=(const vk_device&) = delete;
 
-	vk_device() = default;
-
-	vk_device(vk_device&& device) noexcept;
-	~vk_device() { destroy_device(); }
-
-	void destroy_device();
-	void init(vk_device& device);
-	void init(VkInstance instance);
+	vk_device(vk_context* context);
+	~vk_device();
 
 	VkPhysicalDevice get_device() { return _gpu; }
 
 
 private:
+	void init();
 	void init_attribute(VkPhysicalDevice physical_device);
 
 private:
@@ -36,6 +32,5 @@ private:
 	VkQueue _que{ VK_NULL_HANDLE };  //队列对象
 	VkBuffer _buffer{ VK_NULL_HANDLE };  //设备缓存
 
-	//所有设备
-	std::vector<vk_device> _all_deviecs;
+	vk_context* _context;
 };

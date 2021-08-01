@@ -2,17 +2,26 @@
 
 #include <vulkan/vulkan.h>
 #include <vector>
-#include "vk_layer_extension.h"
+#include "vk_led.h"
 
+class vk_context;
 class vk_instance
 {
 public:
-	VkResult create_instance(std::vector<const char*>& layers,
-		std::vector<const char* >& extensions,
-		const char* applicationName);
+	vk_instance(vk_instance&) = delete;
+	vk_instance operator=(vk_instance&) = delete;
+
+	vk_instance(vk_context* context);
+
+	VkInstance get_instance() { return _instance; }
 
 private:
-	VkInstance _instance;
-	vk_layer_extension _layer_extension;
+	VkResult init();
+
+private:
+	VkInstance _instance{ VK_NULL_HANDLE };
+
+	vk_context* _context{ nullptr };
+	vk_led* _led{ nullptr };
 };
 

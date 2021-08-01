@@ -57,7 +57,7 @@ private:
 
 	void pickPhysicalDevice() 
 	{
-		_devices.init(_instance);
+		//_devices.init(_instance);
 	}
 
 	void create_instance()
@@ -104,7 +104,7 @@ private:
 		};
 
 		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(_devices.get_device(), i, _surface, &presentSupport);
+		//vkGetPhysicalDeviceSurfaceSupportKHR(_devices.get_device(), i, _surface, &presentSupport);
 	}
 
 	void init_extensions()
@@ -140,6 +140,6 @@ private:
 	std::vector<VkExtensionProperties> extensions;
 
 	VkInstance _instance;
-	vk_device _devices;
+	//vk_device _devices;
 	VkSurfaceKHR _surface;
 };
