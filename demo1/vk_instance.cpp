@@ -10,7 +10,7 @@ vk_instance::vk_instance(vk_context* context) :
 	if (_context == nullptr)
 		return;
 
-	_led = _context->_led;
+	_led = &_context->_led;
 
 	init();
 }

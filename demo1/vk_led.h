@@ -18,7 +18,7 @@ enum vk_layer_name
 
 struct vk_layer_properties
 {
-	VkLayerProperties properties;
+	VkLayerProperties properties{};
 	std::vector<VkExtensionProperties> extensions;
 };
 
@@ -35,8 +35,6 @@ public:
 	VkResult get_device_extension_properties(VkPhysicalDevice* gpu) {}
 
 	bool are_layers_supported(std::vector<vk_layer_name>& vk_layers);
-
-
 
 	VkLayerProperties properties{};
 	std::vector<VkExtensionProperties> extensions;

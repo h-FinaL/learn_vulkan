@@ -1,5 +1,6 @@
 #include "vk_device.h"
 #include "vk_instance.h"
+#include "vk_context.h"
 
 vk_device::vk_device(vk_context* context) :
 	_context(context)
@@ -16,7 +17,7 @@ vk_device::~vk_device()
 
 void vk_device::init()
 {
-	vk_instance* instance = _context->_instance;
+	vk_instance* instance = &_context->_instance;
 
 	uint32_t count = 0;
 	vkEnumeratePhysicalDevices(instance->get_instance(), &count, nullptr);
@@ -79,6 +80,8 @@ void vk_device::init()
 	buf_create.queueFamilyIndexCount = 0;
 	buf_create.pQueueFamilyIndices = nullptr;
 	vkCreateBuffer(_device, &buf_create, nullptr, &_buffer);
+
+	vkGetDeviceQueue(_device, _graphics_queue_with_present_index, 0, &_que);
 }
 
 void vk_device::init_attribute(VkPhysicalDevice gpu)

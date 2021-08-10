@@ -3,6 +3,8 @@
 #include <vulkan/vulkan_core.h>
 #include <malloc.h>
 
+#include <iostream>
+
 class vk_allocator
 {
 public:
