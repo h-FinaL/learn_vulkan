@@ -81,7 +81,7 @@ void vk_device::init()
 	buf_create.pQueueFamilyIndices = nullptr;
 	vkCreateBuffer(_device, &buf_create, nullptr, &_buffer);
 
-	vkGetDeviceQueue(_device, _graphics_queue_with_present_index, 0, &_que);
+	//vkGetDeviceQueue(_device, _graphics_queue_with_present_index, 0, &_que);
 }
 
 void vk_device::init_attribute(VkPhysicalDevice gpu)

@@ -112,8 +112,8 @@ void vk_render::buildSwapChainAndDepthImage()
 	_context->_device.get_queue();
 
 	// Create swapchain and get the color image
-	swapChainObj->createSwapChain(cmdDepthImage);
+	//swapChainObj->createSwapChain(cmdDepthImage);
 
 	// Create the depth image
-	createDepthImage();
+	//createDepthImage();
 }
