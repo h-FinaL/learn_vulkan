@@ -67,7 +67,6 @@ void vk_device::init()
 	device_create.ppEnabledExtensionNames = nullptr;
 	device_create.pEnabledFeatures = nullptr;
 
-	device_create.pEnabledFeatures = &required_features;
 	vkCreateDevice(_gpu, &device_create, nullptr, &_device);
 
 	VkBufferCreateInfo buf_create{};

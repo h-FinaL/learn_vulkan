@@ -39,6 +39,9 @@
     <ClCompile Include="vk_swap_chain.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="vk_core.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="vulkan_app.h">

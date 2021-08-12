@@ -15,16 +15,30 @@
 #include "vk_instance.h"
 #include "vk_device.h"
 
-struct layer_extension
+struct device_props
 {
-	VkLayerProperties _property;
+	device_props(VkPhysicalDevice gpu);
+	//设备属性
+	VkPhysicalDeviceProperties _properties{};
+	//物理设备特性
+	VkPhysicalDeviceFeatures _features{};
+	//队列族信息
+	std::vector<VkQueueFamilyProperties> _que_family_props;
 };
 
-struct vk_context
+struct ld_props
 {
+	ld_props(VkLayerProperties props, VkInstance instance, VkPhysicalDevice gpu);
+
+	VkLayerProperties _props;
+	std::vector<VkExtensionProperties> _instance_extension;
+	std::vector<VkExtensionProperties> _device_extension;
+};
+
+class vk_context
+{
+
 public:
-	//vk_context(const vk_context&) = delete;
-	//void operator=(const vk_context&) = delete;
 
 	vk_allocator _allocator;
 	vk_led _led;
@@ -33,29 +47,44 @@ public:
 
 	vk_context();
 
+private:
+	//创建临时实例
+	VkInstance create_temp_instance();
+	//获取临时物理设备
+	std::vector<VkPhysicalDevice> create_temp_physical_devices(VkInstance instance);
+	//获取所有的层
+	void available_layers();
+	//获取所有实例支持的扩展
+	void all_instance_extension();
+
+public:
+	//所有实例属性
+	std::vector<device_props> _device_props;
+	//所有验证层和扩展属性
+	std::vector<ld_props> _ld_props;
+
+	//设备属性
+	VkPhysicalDeviceProperties _device_properties{};
+	//物理设备特性
+	VkPhysicalDeviceFeatures _device_features{};
+	//队列族信息
+	std::vector<VkQueueFamilyProperties> _device_que_family_props;
+	//选择物理设备
+	int _chooes_device = 0;
+
+	//可用的验证层
+	std::vector<VkLayerProperties> _available_layers;
+	//启用的验证层
+	std::vector<const char*> _validation_layers;
+	//是否启用验证层
+	bool enable_validation_layers{ false };
+
+
 	//应用名称
 	std::string _app_name{ "vulkan" };
 	//宽度
 	int _width{ 0 };
 	//长度
 	int _height{ 0 };
-
-	//是否开启扩展
-	bool _open_extension{ false };
-
-	//层和扩展
-	typedef std::vector<std::vector<VkExtensionProperties>> extensions;
-
-	std::vector<VkLayerProperties> _layer_props;
-	extensions _instance_extensions;
-
-	struct device_properties
-	{
-		VkPhysicalDeviceProperties _properties{};  //设备属性
-		VkPhysicalDeviceFeatures _supported_features{};  //物理设备特性
-		std::vector<VkQueueFamilyProperties> _que_family_props;  //队列族信息
-		extensions _extension;
-	};
-	std::vector<device_properties> _device_properties;
 };
 
