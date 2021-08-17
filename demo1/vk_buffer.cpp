@@ -1,31 +1,26 @@
 #include "vk_buffer.h"
 
 
-void vk_buffer::allocCommandBuffer(const VkDevice* device,
-	const VkCommandPool cmdPool,
-	VkCommandBuffer* cmdBuf,
-	const VkCommandBufferAllocateInfo*
-	commandBufferInfo)
+void vk_buffer::alloc_command_buffer(VkCommandBuffer* cmdBuf, const VkCommandBufferAllocateInfo* commandBufferInfo)
 {
 	VkResult result;
 	if (commandBufferInfo)
 	{
-		result = vkAllocateCommandBuffers(*device, commandBufferInfo, cmdBuf);
+		result = vkAllocateCommandBuffers(_device, commandBufferInfo, cmdBuf);
 		return;
 	}
 
 	VkCommandBufferAllocateInfo cmd_info{};
 	cmd_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	cmd_info.pNext = NULL;
-	cmd_info.commandPool = cmdPool;
+	cmd_info.commandPool = _pool;
 	cmd_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	cmd_info.commandBufferCount = (uint32_t)sizeof(cmdBuf) / sizeof(VkCommandBuffer);
 
-	result = vkAllocateCommandBuffers(*device, &cmd_info, cmdBuf);
+	result = vkAllocateCommandBuffers(_device, &cmd_info, cmdBuf);
 }
 
-void vk_buffer::beginCommandBuffer(VkCommandBuffer cmdBuf,
-	VkCommandBufferBeginInfo* inCmdBufInfo)
+void vk_buffer::begin_command_buffer(VkCommandBuffer cmdBuf, VkCommandBufferBeginInfo* inCmdBufInfo)
 {
 	VkResult result;
 	if (inCmdBufInfo)
@@ -53,13 +48,13 @@ void vk_buffer::beginCommandBuffer(VkCommandBuffer cmdBuf,
 	result = vkBeginCommandBuffer(cmdBuf, &cmdBufInfo);
 }
 
-void vk_buffer::endCommandBuffer(VkCommandBuffer cmdBuf)
+void vk_buffer::end_command_buffer(VkCommandBuffer cmdBuf)
 {
 	VkResult result;
 	result = vkEndCommandBuffer(cmdBuf);
 }
 
-void vk_buffer::submitCommandBuffer(const VkQueue& queue,
+void vk_buffer::submit_command_buffer(const VkQueue& queue,
 	const VkCommandBuffer* cmdBufList,
 	const VkSubmitInfo* in_submit_info,
 	const VkFence& fence)

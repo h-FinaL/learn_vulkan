@@ -39,7 +39,12 @@ vk_context::vk_context()
 	for (auto& layer : _available_layers)
 		_ld_props.emplace_back(layer, _instance, _gpus);
 
-	_validation_layers.push_back({ "VK_LAYER_KHRONOS_validation" });
+	_validation_layers.push_back("VK_LAYER_KHRONOS_validation");
+	_instance_extension_names.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+	_instance_extension_names.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+	_instance_extension_names.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+
+	_device_extension_names.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 
 	vkDestroyInstance(_instance, nullptr);
 }

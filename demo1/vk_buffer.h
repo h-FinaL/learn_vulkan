@@ -1,28 +1,29 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "vk_core.h"
 
 class vk_buffer
 {
 public:
-	static void allocCommandBuffer(const VkDevice* device, 
-		const VkCommandPool cmdPool, 
-		VkCommandBuffer* cmdBuf,
-		const VkCommandBufferAllocateInfo*
-		commandBufferInfo = NULL);
+	vk_buffer(vk_core* core) :
+		_pool(core->_pool),
+		_device(core->_device)
+	{}
 
-	static void beginCommandBuffer(VkCommandBuffer cmdBuf, 
-		VkCommandBufferBeginInfo* inCmdBufInfo = NULL);
+	void alloc_command_buffer(VkCommandBuffer* cmdBuf, const VkCommandBufferAllocateInfo* commandBufferInfo = NULL);
 
-	static void endCommandBuffer(VkCommandBuffer cmdBuf);
+	void begin_command_buffer(VkCommandBuffer cmdBuf, VkCommandBufferBeginInfo* inCmdBufInfo = NULL);
 
-	static void submitCommandBuffer(const VkQueue& queue, 
+	void end_command_buffer(VkCommandBuffer cmdBuf);
+
+	void submit_command_buffer(const VkQueue& queue,
 		const VkCommandBuffer* cmdBufList,
 		const VkSubmitInfo* submitInfo = NULL,
 		const VkFence& fence = VK_NULL_HANDLE);
 
 
 private:
-
+	VkDevice _device;
+	VkCommandPool _pool;
 };
 

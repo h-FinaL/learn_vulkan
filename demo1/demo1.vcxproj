@@ -151,8 +151,6 @@
     <ClCompile Include="vk_buffer.cpp" />
     <ClCompile Include="vk_context.cpp" />
     <ClCompile Include="vk_core.cpp" />
-    <ClCompile Include="vk_device.cpp" />
-    <ClCompile Include="vk_instance.cpp" />
     <ClCompile Include="vk_led.cpp" />
     <ClCompile Include="vk_render.cpp" />
     <ClCompile Include="vk_swap_chain.cpp" />
@@ -162,12 +160,9 @@
     <ClInclude Include="vk_buffer.h" />
     <ClInclude Include="vk_context.h" />
     <ClInclude Include="vk_core.h" />
-    <ClInclude Include="vk_device.h" />
-    <ClInclude Include="vk_instance.h" />
     <ClInclude Include="vk_led.h" />
     <ClInclude Include="vk_render.h" />
     <ClInclude Include="vk_swap_chain.h" />
-    <ClInclude Include="vulkan_app.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

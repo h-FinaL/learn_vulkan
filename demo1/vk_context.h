@@ -10,11 +10,6 @@
 #include <string>
 #include <vector>
 
-#include "vk_allocator.h"
-#include "vk_led.h"
-#include "vk_instance.h"
-#include "vk_device.h"
-
 struct device_props
 {
 	device_props(VkPhysicalDevice gpu);
@@ -39,12 +34,6 @@ class vk_context
 {
 
 public:
-
-	vk_allocator _allocator;
-	vk_led _led;
-	vk_instance _instance{ this };
-	vk_device _device{ this };
-
 	vk_context();
 
 private:
@@ -76,6 +65,8 @@ public:
 	std::vector<VkLayerProperties> _available_layers;
 	//启用的验证层
 	std::vector<const char*> _validation_layers;
+	std::vector<const char*> _instance_extension_names;
+	std::vector<const char*> _device_extension_names;
 	//是否启用验证层
 	bool enable_validation_layers{ false };
 

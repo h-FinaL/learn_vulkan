@@ -1,5 +1,30 @@
 #include "vk_core.h"
 
+vk_core::vk_core(vk_context& context) :
+	_context(&context)
+{
+	_instance = create_instance();
+	_gpu = create_gpu();
+	_device = create_device();
+	_que = create_que();
+	_buffer = create_buffer();
+	_pool = create_pool();
+
+	for (int i = 0; i < context._device_que_family_props.size(); i++) {
+		if (context._device_que_family_props[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) 
+		{
+			_graphics_queue_index = i;
+			break;
+		}
+	}
+}
+
+vk_core::~vk_core()
+{
+	if (_device) vkDestroyDevice(_device, NULL);
+	if (_instance ) vkDestroyInstance(_instance, nullptr);
+}
+
 VkInstance vk_core::create_instance()
 {
 	VkApplicationInfo app_info{};
@@ -13,23 +38,16 @@ VkInstance vk_core::create_instance()
 	VkInstanceCreateInfo create_info{};
 	create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	create_info.pApplicationInfo = &app_info;
-	create_info.ppEnabledExtensionNames = glfwGetRequiredInstanceExtensions(&create_info.enabledExtensionCount);
-	create_info.enabledLayerCount = 0;
+	create_info.ppEnabledExtensionNames = _context->_instance_extension_names.data();
+	create_info.enabledLayerCount = _context->_instance_extension_names.size();
 
-	if (vkCreateInstance(&create_info, nullptr, &_instance) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create instance!");
-	}
+	vkCreateInstance(&create_info, nullptr, &_instance);
 }
 
 VkPhysicalDevice vk_core::create_gpu()
 {
 	uint32_t count = 0;
 	vkEnumeratePhysicalDevices(_instance, &count, nullptr);
-
-	if (count == 0)
-	{
-		throw std::runtime_error("failed to find GPUs with Vulkan support!");
-	}
 	std::vector<VkPhysicalDevice> gpus;
 	gpus.resize(count);
 	vkEnumeratePhysicalDevices(_instance, &count, gpus.data());
@@ -58,14 +76,15 @@ VkDevice vk_core::create_device()
 	device_create.flags = 0;
 	device_create.queueCreateInfoCount = 1;
 	device_create.pQueueCreateInfos = &que_create;
-	device_create.enabledLayerCount = 0;
-	device_create.ppEnabledLayerNames = nullptr;
-	device_create.enabledExtensionCount = 0;
-	device_create.ppEnabledExtensionNames = nullptr;
+	device_create.enabledLayerCount = _context->_validation_layers.size();
+	device_create.ppEnabledLayerNames = _context->_validation_layers.data();
+	device_create.enabledExtensionCount = _context->_device_extension_names.size();
+	device_create.ppEnabledExtensionNames = _context->_device_extension_names.data();
 	device_create.pEnabledFeatures = nullptr;
 
 	VkDevice device;
 	vkCreateDevice(_gpu, &device_create, nullptr, &device);
+	_queue_count = _context->_device_que_family_props.size();
 
 	return device;
 }
@@ -106,4 +125,22 @@ VkCommandPool vk_core::create_pool()
 	vkCreateCommandPool(_device, &info, nullptr, &pool);
 
 	return pool;
+}
+
+void vk_core::memoryTypeFromProperties(uint32_t typeBits, VkFlags requirementsMask, uint32_t* typeIndex)
+{
+
+	// Search memtypes to find first index with those properties
+	for (uint32_t i = 0; i < 32; i++) {
+		if ((typeBits & 1) == 1) {
+			// Type is available, does it match user properties?
+			if ((_context->_memmemoryTypes[i].propertyFlags & requirementsMask) == requirementsMask) {
+				*typeIndex = i;
+				return true;
+			}
+		}
+		typeBits >>= 1;
+	}
+	// No memory types matched, return failure
+	return false;
 }

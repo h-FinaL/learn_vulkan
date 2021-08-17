@@ -2,13 +2,15 @@
 
 #include <Windows.h>
 #include <vulkan/vulkan.h>
-#include "vk_context.h"
+#include "vk_core.h"
+
+#define NUM_SAMPLES VK_SAMPLE_COUNT_1_BIT
 
 class vk_swap_chain;
 class vk_render
 {
 public:
-	vk_render(vk_context* context) : _context(context) {}
+	vk_render(vk_core* core);
 
 	void initialize();
 
@@ -22,6 +24,7 @@ public:
 	void create_command_pool();
 	void build_swap_chain_and_depth_image();
 	void buildSwapChainAndDepthImage();
+	void createDepthImage();
 
 	int get_width() { return _width; }
 	int get_height() { return _height; }
@@ -48,6 +51,7 @@ private:
 	int _width{ 0 };
 	int _height{ 0 };
 
-	vk_context* _context{ nullptr };
+	vk_core* _core{ nullptr }; 
+	vk_swap_chain _swap_chain;
 };
 

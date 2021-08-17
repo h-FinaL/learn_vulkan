@@ -3,6 +3,11 @@
 
 #include <iostream>
 
+
+vk_swap_chain::vk_swap_chain(vk_core* core) : _core(core)
+{
+}
+
 void vk_swap_chain::inti_swap_chain()
 {
 	// Querying swapchain extensions
@@ -18,7 +23,7 @@ void vk_swap_chain::inti_swap_chain()
 		std::cout << "Could not find a graphics and a present queue\nCould not find a graphics and a present queue\n";
 		exit(-1);
 	}
-	_device->set_queue_index(index);
+	_core->_graphics_queue_index = index;
 
 	// Get the list of formats that are supported
 	getSupportedFormats();
@@ -43,8 +48,8 @@ void vk_swap_chain::inti_swap_chain()
 VkResult vk_swap_chain::createSwapChainExtensions()
 {
 	// Dependency on createPresentationWindow()
-	VkInstance instance = _context->_instance.get_instance();
-	VkDevice device = _device->get_device();
+	VkInstance instance = _core->_instance;
+	VkDevice device = _core->_device;
 
 	// Get Instance based swap chain extension function pointer
 	INSTANCE_FUNC_PTR(instance, GetPhysicalDeviceSurfaceSupportKHR);
@@ -65,7 +70,7 @@ VkResult vk_swap_chain::createSwapChainExtensions()
 
 void vk_swap_chain::getSupportedFormats()
 {
-	VkPhysicalDevice gpu = _device->get_gpu();
+	VkPhysicalDevice gpu = _core->_gpu;
 	VkResult  result;
 
 	// Get the list of VkFormats that are supported:
@@ -95,7 +100,7 @@ VkResult vk_swap_chain::createSurface()
 {
 	VkResult  result;
 	// Depends on createPresentationWindow(), need an empty window handle
-	VkInstance instance = _context->_instance.get_instance();
+	VkInstance instance = _core->_instance;
 
 	// Construct the surface description:
 #ifdef _WIN32
@@ -225,10 +230,10 @@ void vk_swap_chain::createSwapChainColorImages()
 	swapChainInfo.queueFamilyIndexCount = 0;
 	swapChainInfo.pQueueFamilyIndices = NULL;
 
-	result = fpCreateSwapchainKHR(_device->get_device(), &swapChainInfo, NULL, &scPublicVars.swapChain);
+	result = fpCreateSwapchainKHR(_core->_device, &swapChainInfo, NULL, &scPublicVars.swapChain);
 
 	// Create the swapchain object
-	result = fpGetSwapchainImagesKHR(_device->get_device(), scPublicVars.swapChain, &scPublicVars.swapchainImageCount, NULL);
+	result = fpGetSwapchainImagesKHR(_core->_device, scPublicVars.swapChain, &scPublicVars.swapchainImageCount, NULL);
 
 	scPrivateVars.swapchainImages.clear();
 	// Get the number of images the swapchain has
@@ -236,7 +241,7 @@ void vk_swap_chain::createSwapChainColorImages()
 	//assert(scPrivateVars.swapchainImages.size() >= 1);
 
 	// Retrieve the swapchain image surfaces 
-	result = fpGetSwapchainImagesKHR(_device->get_device(), scPublicVars.swapChain, &scPublicVars.swapchainImageCount, &scPrivateVars.swapchainImages[0]);
+	result = fpGetSwapchainImagesKHR(_core->_device, scPublicVars.swapChain, &scPublicVars.swapchainImageCount, &scPrivateVars.swapchainImages[0]);
 	//assert(result == VK_SUCCESS);
 }
 
@@ -268,7 +273,7 @@ void vk_swap_chain::createColorImageView(const VkCommandBuffer& cmd)
 
 		imgViewInfo.image = sc_buffer.image;
 
-		result = vkCreateImageView(_device->get_device(), &imgViewInfo, NULL, &sc_buffer.view);
+		result = vkCreateImageView(_core->_device, &imgViewInfo, NULL, &sc_buffer.view);
 		scPublicVars.colorBuffer.push_back(sc_buffer);
 		//assert(result == VK_SUCCESS);
 	}

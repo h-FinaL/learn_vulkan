@@ -6,16 +6,10 @@
 class vk_core
 {
 public:
-	vk_core(vk_context& context) :
-		_context(&context)
-	{
-		_instance = create_instance();
-		_gpu = create_gpu();
-		_device = create_device();
-		_que = create_que();
-		_buffer = create_buffer();
-		_pool = create_pool();
-	}
+	vk_core(vk_context& context);
+	~vk_core();
+
+	void memoryTypeFromProperties(uint32_t typeBits, VkFlags requirementsMask, uint32_t* typeIndex);
 
 private:
 	VkInstance create_instance();
@@ -32,6 +26,10 @@ public:
 	VkInstance _instance{ VK_NULL_HANDLE }; 
 	//物理设备
 	VkPhysicalDevice _gpu{ VK_NULL_HANDLE };
+	uint32_t _graphics_queue_index;
+	uint32_t _graphics_queue_with_present_index;
+	uint32_t _queue_count;
+
 	//逻辑设备
 	VkDevice _device{ VK_NULL_HANDLE };
 	//队列对象
