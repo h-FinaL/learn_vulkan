@@ -1,9 +1,9 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
-#include "vk_render.h"
 #include "vk_core.h"
 
+class vk_render;
 
 struct SwapChainBuffer {
 	VkImage image;
@@ -66,7 +66,7 @@ struct SwapChainPublicVariables
 class vk_swap_chain
 {
 public:
-	vk_swap_chain(vk_core* core);
+	vk_swap_chain(vk_core* core, vk_render* render);
 	~vk_swap_chain() {};
 
 	void inti_swap_chain();

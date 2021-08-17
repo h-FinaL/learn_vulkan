@@ -1,10 +1,13 @@
 ﻿#include "vk_swap_chain.h"
+#include "vk_render.h"
 #include <vulkan/vulkan_win32.h>
 
 #include <iostream>
 
 
-vk_swap_chain::vk_swap_chain(vk_core* core) : _core(core)
+vk_swap_chain::vk_swap_chain(vk_core* core, vk_render* render) :
+	_core(core),
+	_renderer(render)
 {
 }
 

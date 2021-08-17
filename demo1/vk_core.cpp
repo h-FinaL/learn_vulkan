@@ -38,10 +38,12 @@ VkInstance vk_core::create_instance()
 	VkInstanceCreateInfo create_info{};
 	create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	create_info.pApplicationInfo = &app_info;
-	create_info.ppEnabledExtensionNames = _context->_instance_extension_names.data();
-	create_info.enabledLayerCount = _context->_instance_extension_names.size();
+	create_info.ppEnabledExtensionNames = nullptr; // _context->_instance_extension_names.data();
+	create_info.enabledLayerCount = 0; // _context->_instance_extension_names.size();
 
-	vkCreateInstance(&create_info, nullptr, &_instance);
+	VkInstance instance;
+	vkCreateInstance(&create_info, nullptr, &instance);
+	return instance;
 }
 
 VkPhysicalDevice vk_core::create_gpu()
@@ -127,14 +129,14 @@ VkCommandPool vk_core::create_pool()
 	return pool;
 }
 
-void vk_core::memoryTypeFromProperties(uint32_t typeBits, VkFlags requirementsMask, uint32_t* typeIndex)
+bool vk_core::memoryTypeFromProperties(uint32_t typeBits, VkFlags requirementsMask, uint32_t* typeIndex)
 {
 
 	// Search memtypes to find first index with those properties
 	for (uint32_t i = 0; i < 32; i++) {
 		if ((typeBits & 1) == 1) {
 			// Type is available, does it match user properties?
-			if ((_context->_memmemoryTypes[i].propertyFlags & requirementsMask) == requirementsMask) {
+			if ((_context->_memory_props.memoryTypes[i].propertyFlags & requirementsMask) == requirementsMask) {
 				*typeIndex = i;
 				return true;
 			}

@@ -58,6 +58,8 @@ public:
 	VkPhysicalDeviceFeatures _device_features{};
 	//队列族信息
 	std::vector<VkQueueFamilyProperties> _device_que_family_props;
+	//物理设备内存信息
+	VkPhysicalDeviceMemoryProperties _memory_props;
 	//选择物理设备
 	int _chooes_device = 0;
 

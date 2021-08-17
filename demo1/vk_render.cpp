@@ -1,10 +1,11 @@
 #include "vk_render.h"
-
+#include "vk_swap_chain.h"
 #include <iostream>
 
 vk_render::vk_render(vk_core* core) : 
 	_core(core),
-	_swap_chain(core)
+	_swap_chain(core, this),
+	_buffer(core)
 {
 
 }
@@ -103,7 +104,7 @@ void vk_render::build_swap_chain_and_depth_image()
 	vkGetDeviceQueue(_core->_device, _core->_graphics_queue_with_present_index, 0, &_core->_que);
 
 	// Create swapchain and get the color image
-	_swap_chain->createSwapChain(_cmd_depth_image);
+	_swap_chain.createSwapChain(_cmd_depth_image);
 
 	// Create the depth image
 	createDepthImage();
@@ -123,6 +124,68 @@ bool vk_render::render()
 	return true;
 }
 
+void vk_render::set_image_layout(VkImage image,
+	VkImageAspectFlags aspectMask,
+	VkImageLayout oldImageLayout,
+	VkImageLayout newImageLayout,
+	VkAccessFlagBits srcAccessMask,
+	const VkCommandBuffer& cmd)
+{
+	// Dependency on cmd
+	//assert(cmd != VK_NULL_HANDLE);
+
+	// The deviceObj->queue must be initialized
+	//assert(deviceObj->queue != VK_NULL_HANDLE);
+
+	VkImageMemoryBarrier imgMemoryBarrier = {};
+	imgMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	imgMemoryBarrier.pNext = NULL;
+	imgMemoryBarrier.srcAccessMask = srcAccessMask;
+	imgMemoryBarrier.dstAccessMask = 0;
+	imgMemoryBarrier.oldLayout = oldImageLayout;
+	imgMemoryBarrier.newLayout = newImageLayout;
+	imgMemoryBarrier.image = image;
+	imgMemoryBarrier.subresourceRange.aspectMask = aspectMask;
+	imgMemoryBarrier.subresourceRange.baseMipLevel = 0;
+	imgMemoryBarrier.subresourceRange.levelCount = 1;
+	imgMemoryBarrier.subresourceRange.layerCount = 1;
+
+	if (oldImageLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+		imgMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	}
+
+	switch (newImageLayout)
+	{
+		// Ensure that anything that was copying from this image has completed
+		// An image in this layout can only be used as the destination operand of the commands
+	case VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL:
+	case VK_IMAGE_LAYOUT_PRESENT_SRC_KHR:
+		imgMemoryBarrier.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		break;
+
+		// Ensure any Copy or CPU writes to image are flushed
+		// An image in this layout can only be used as a read-only shader resource
+	case VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL:
+		imgMemoryBarrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
+		imgMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		break;
+
+		// An image in this layout can only be used as a framebuffer color attachment
+	case VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL:
+		imgMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+		break;
+
+		// An image in this layout can only be used as a framebuffer depth/stencil attachment
+	case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
+		imgMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+		break;
+	}
+
+	VkPipelineStageFlags srcStages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+	VkPipelineStageFlags destStages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+
+	vkCmdPipelineBarrier(cmd, srcStages, destStages, 0, 0, NULL, 0, NULL, 1, &imgMemoryBarrier);
+}
 
 void vk_render::createDepthImage()
 {
@@ -182,16 +245,16 @@ void vk_render::createDepthImage()
 	memAlloc.memoryTypeIndex = 0;
 	memAlloc.allocationSize = memRqrmnt.size;
 	// Determine the type of memory required with the help of memory properties
-	pass = deviceObj->memoryTypeFromProperties(memRqrmnt.memoryTypeBits, 0, /* No requirements */ &memAlloc.memoryTypeIndex);
-	assert(pass);
+	pass = _core->memoryTypeFromProperties(memRqrmnt.memoryTypeBits, 0, /* No requirements */ &memAlloc.memoryTypeIndex);
+	//assert(pass);
 
 	// Allocate the memory for image objects
-	result = vkAllocateMemory(deviceObj->device, &memAlloc, NULL, &Depth.mem);
-	assert(result == VK_SUCCESS);
+	result = vkAllocateMemory(_core->_device, &memAlloc, NULL, &Depth._mem);
+	//assert(result == VK_SUCCESS);
 
 	// Bind the allocated memeory
-	result = vkBindImageMemory(deviceObj->device, Depth.image, Depth.mem, 0);
-	assert(result == VK_SUCCESS);
+	result = vkBindImageMemory(_core->_device, Depth._image, Depth._mem, 0);
+	//assert(result == VK_SUCCESS);
 
 
 	VkImageViewCreateInfo imgViewInfo = {};
@@ -216,22 +279,22 @@ void vk_render::createDepthImage()
 
 	// Use command buffer to create the depth image. This includes -
 	// Command buffer allocation, recording with begin/end scope and submission.
-	CommandBufferMgr::allocCommandBuffer(&deviceObj->device, cmdPool, &cmdDepthImage);
-	CommandBufferMgr::beginCommandBuffer(cmdDepthImage);
+	_buffer.alloc_command_buffer(&_cmd_depth_image);
+	_buffer.begin_command_buffer(_cmd_depth_image);
 	{
 		// Set the image layout to depth stencil optimal
-		setImageLayout(Depth.image,
+		set_image_layout(Depth._image,
 			imgViewInfo.subresourceRange.aspectMask,
 			VK_IMAGE_LAYOUT_UNDEFINED,
-			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, (VkAccessFlagBits)0, cmdDepthImage);
+			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, (VkAccessFlagBits)0, _cmd_depth_image);
 	}
-	CommandBufferMgr::endCommandBuffer(cmdDepthImage);
-	CommandBufferMgr::submitCommandBuffer(deviceObj->queue, &cmdDepthImage);
+	_buffer.end_command_buffer(_cmd_depth_image);
+	_buffer.submit_command_buffer(_core->_que, &_cmd_depth_image);
 
 	// Create the image view and allow the application to use the images.
-	imgViewInfo.image = Depth.image;
-	result = vkCreateImageView(deviceObj->device, &imgViewInfo, NULL, &Depth.view);
-	assert(result == VK_SUCCESS);
+	imgViewInfo.image = Depth._image;
+	result = vkCreateImageView(_core->_device, &imgViewInfo, NULL, &Depth._view);
+	//assert(result == VK_SUCCESS);
 }
 
 void vk_render::buildSwapChainAndDepthImage()

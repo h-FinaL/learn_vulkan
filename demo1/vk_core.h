@@ -9,7 +9,7 @@ public:
 	vk_core(vk_context& context);
 	~vk_core();
 
-	void memoryTypeFromProperties(uint32_t typeBits, VkFlags requirementsMask, uint32_t* typeIndex);
+	bool memoryTypeFromProperties(uint32_t typeBits, VkFlags requirementsMask, uint32_t* typeIndex);
 
 private:
 	VkInstance create_instance();

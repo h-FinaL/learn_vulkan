@@ -3,10 +3,11 @@
 #include <Windows.h>
 #include <vulkan/vulkan.h>
 #include "vk_core.h"
+#include "vk_buffer.h"
+#include "vk_swap_chain.h"
 
 #define NUM_SAMPLES VK_SAMPLE_COUNT_1_BIT
 
-class vk_swap_chain;
 class vk_render
 {
 public:
@@ -17,6 +18,12 @@ public:
 	bool render();
 
 	void create_presentation_window(int& height, int& weight);
+	void set_image_layout(VkImage image, 
+		VkImageAspectFlags aspectMask, 
+		VkImageLayout oldImageLayout, 
+		VkImageLayout newImageLayout, 
+		VkAccessFlagBits srcAccessMask,
+		const VkCommandBuffer& cmdBuf);
 
 	//! Windows procedure method for handling events.
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -53,5 +60,6 @@ private:
 
 	vk_core* _core{ nullptr }; 
 	vk_swap_chain _swap_chain;
+	vk_buffer _buffer;
 };
 

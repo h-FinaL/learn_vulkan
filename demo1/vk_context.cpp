@@ -37,7 +37,7 @@ vk_context::vk_context()
 		_device_props.emplace_back(gpu);
 
 	for (auto& layer : _available_layers)
-		_ld_props.emplace_back(layer, _instance, _gpus);
+		_ld_props.emplace_back(layer, _instance, _gpus[0]);
 
 	_validation_layers.push_back("VK_LAYER_KHRONOS_validation");
 	_instance_extension_names.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
@@ -73,6 +73,7 @@ std::vector<VkPhysicalDevice> vk_context::create_temp_physical_devices(VkInstanc
 	std::vector<VkPhysicalDevice> physical_devices;
 	physical_devices.resize(count);
 	vkEnumeratePhysicalDevices(instance, &count, physical_devices.data());
+	vkGetPhysicalDeviceMemoryProperties(physical_devices[0], &_memory_props);
 
 	return physical_devices;
 }
