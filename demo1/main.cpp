@@ -2,30 +2,18 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
-#include "vulkan_app.h"
-#include "vk_context.h"
-
+#include "vk_core.h"
+#include "vk_render.h"
+#include "vk_swap_chain.h"
 
 int main()
 {
-	//vulkan_app app;
-	//try
-	//{
-	//	app.run();
-	//}
-	//catch (const std::exception& e)
-	//{
-	//	std::cerr << e.what() << std::endl;
-	//	return EXIT_FAILURE;
-	//}
-	vk_context context;
-	for (int i = 0; i <  context._layer_props.size(); i++)
+	vk_context ctx;
+	vk_core core(ctx);
+	vk_render render(&core);
+	while (1)
 	{
-		std::cout << context._layer_props[i].layerName << std::endl;
-		for (int j = 0; j < context._instance_extensions[i].size(); j++)
-		{
-			std::cout << "---->" << context._instance_extensions[i][j].extensionName << std::endl;
-		}
+		render.render();
 	}
 
 	return 0;
