@@ -69,7 +69,7 @@ public:
 	vk_swap_chain(vk_core* core, vk_render* render);
 	~vk_swap_chain() {};
 
-	void inti_swap_chain();
+	void init_swap_chain();
 	void createSwapChain(const VkCommandBuffer& cmd);
 
 private:

@@ -17,7 +17,7 @@ public:
 
 	bool render();
 
-	void create_presentation_window(int& height, int& weight);
+	void create_presentation_window(int height, int weight);
 	void set_image_layout(VkImage image, 
 		VkImageAspectFlags aspectMask, 
 		VkImageLayout oldImageLayout, 

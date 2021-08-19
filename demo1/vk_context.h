@@ -6,6 +6,7 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_win32.h>
 
 #include <string>
 #include <vector>
@@ -66,9 +67,18 @@ public:
 	//可用的验证层
 	std::vector<VkLayerProperties> _available_layers;
 	//启用的验证层
-	std::vector<const char*> _validation_layers;
-	std::vector<const char*> _instance_extension_names;
-	std::vector<const char*> _device_extension_names;
+	std::vector<const char*> _validation_layers{
+		"VK_LAYER_KHRONOS_validation",
+		"VK_LAYER_LUNARG_api_dump"
+	};
+	std::vector<const char*> _instance_extension_names{
+		VK_KHR_SURFACE_EXTENSION_NAME,
+		VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+		VK_EXT_DEBUG_REPORT_EXTENSION_NAME
+	};
+	std::vector<const char*> _device_extension_names{
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	};
 	//是否启用验证层
 	bool enable_validation_layers{ false };
 

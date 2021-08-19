@@ -7,21 +7,31 @@ vk_render::vk_render(vk_core* core) :
 	_swap_chain(core, this),
 	_buffer(core)
 {
-
+	initialize();
 }
 
 void vk_render::initialize()
 {
+	// Create an empy window 500x500
+	create_presentation_window(500, 500);
 
+	// Initialize swapchain
+	_swap_chain.init_swap_chain();
+
+	// We need command buffers, so create a command buffer pool
+	create_command_pool();
+
+	// Let's create the swap chain color images and depth image
+	buildSwapChainAndDepthImage();
 }
 
-void vk_render::create_presentation_window(int& height, int& weight)
+void vk_render::create_presentation_window(int height, int weight)
 {
 	_height = height;
 	_width = weight;
 	WNDCLASSEX  winInfo;
 
-	memcpy(_name, "Swapchain presentation window", 30);
+	memcpy(_name, L"Swapchain presentation window", 30);
 	memset(&winInfo, 0, sizeof(WNDCLASSEX));
 	// Initialize the window class structure:
 	winInfo.cbSize = sizeof(WNDCLASSEX);

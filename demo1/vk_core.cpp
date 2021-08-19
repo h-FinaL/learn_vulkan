@@ -1,5 +1,7 @@
 #include "vk_core.h"
 
+#include <iostream>
+
 vk_core::vk_core(vk_context& context) :
 	_context(&context)
 {
@@ -29,7 +31,7 @@ VkInstance vk_core::create_instance()
 {
 	VkApplicationInfo app_info{};
 	app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	app_info.pApplicationName = _context->_app_name.c_str();
+	app_info.pApplicationName = "vulkan"; // _context->_app_name.c_str();
 	app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 	app_info.pEngineName = "No Engine";
 	app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -38,11 +40,17 @@ VkInstance vk_core::create_instance()
 	VkInstanceCreateInfo create_info{};
 	create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	create_info.pApplicationInfo = &app_info;
-	create_info.ppEnabledExtensionNames = nullptr; // _context->_instance_extension_names.data();
-	create_info.enabledLayerCount = 0; // _context->_instance_extension_names.size();
+	create_info.ppEnabledExtensionNames = _context->_instance_extension_names.data();
+	create_info.enabledExtensionCount = _context->_instance_extension_names.size();
+	create_info.ppEnabledLayerNames = _context->_validation_layers.data();
+	create_info.enabledLayerCount = _context->_validation_layers.size();
 
 	VkInstance instance;
-	vkCreateInstance(&create_info, nullptr, &instance);
+	VkResult result;
+	if ((result = vkCreateInstance(&create_info, nullptr, &instance)) != VK_SUCCESS)
+	{
+		std::cout << result << std::endl;
+	}
 	return instance;
 }
 

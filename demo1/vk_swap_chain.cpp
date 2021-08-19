@@ -11,7 +11,7 @@ vk_swap_chain::vk_swap_chain(vk_core* core, vk_render* render) :
 {
 }
 
-void vk_swap_chain::inti_swap_chain()
+void vk_swap_chain::init_swap_chain()
 {
 	// Querying swapchain extensions
 	createSwapChainExtensions();
@@ -56,6 +56,7 @@ VkResult vk_swap_chain::createSwapChainExtensions()
 
 	// Get Instance based swap chain extension function pointer
 	INSTANCE_FUNC_PTR(instance, GetPhysicalDeviceSurfaceSupportKHR);
+	//fpGetPhysicalDeviceSurfaceSupportKHR = (PFN_vkGetPhysicalDeviceSurfaceSupportKHR)vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSurfaceSupportKHR");
 	INSTANCE_FUNC_PTR(instance, GetPhysicalDeviceSurfaceCapabilitiesKHR);
 	INSTANCE_FUNC_PTR(instance, GetPhysicalDeviceSurfaceFormatsKHR);
 	INSTANCE_FUNC_PTR(instance, GetPhysicalDeviceSurfacePresentModesKHR);
