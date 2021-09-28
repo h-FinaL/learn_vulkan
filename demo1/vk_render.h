@@ -38,8 +38,14 @@ public:
 	HINSTANCE get_hinstance() { return _connection; }
 	HWND get_hwnd() { return _window; }
 
+	void create_render_pass_cb(bool include_depth);
+	void create_render_pass(bool include_depth, bool clear = true);
+	void destroy_render_pass();
 
-private:
+	void create_frame_buffer(bool include_depth,  bool clear = true);
+	void destory_frame_buffer();
+
+public:
 	HINSTANCE _connection;
 
 	char _name[80];
@@ -61,5 +67,8 @@ private:
 	vk_core* _core{ nullptr }; 
 	vk_swap_chain _swap_chain;
 	vk_buffer _buffer;
+
+	VkRenderPass _render_pass;
+	std::vector<VkFramebuffer> _frame_buffers;
 };
 

@@ -318,3 +318,113 @@ void vk_render::buildSwapChainAndDepthImage()
 	// Create the depth image
 	//createDepthImage();
 }
+
+void vk_render::create_render_pass_cb(bool include_depth)
+{
+}
+
+void vk_render::create_render_pass(bool include_depth, bool clear)
+{
+
+	VkResult result;
+
+	VkAttachmentDescription attachments[2];
+	//将颜色附件和深度附件关联到渲染通道实例
+	attachments[0].format = _swap_chain.scPublicVars.format;
+	attachments[0].samples = NUM_SAMPLES;
+	attachments[0].loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachments[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachments[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachments[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachments[0].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	attachments[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	attachments[0].flags = 0;
+
+	if (include_depth)
+	{
+		attachments[1].format = Depth._format;
+		attachments[1].samples = NUM_SAMPLES;
+		attachments[1].loadOp = clear ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		attachments[1].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		attachments[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		attachments[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		attachments[1].initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		attachments[1].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		attachments[1].flags = 0;
+	}
+
+	//定义颜色缓存附件的绑定点和布局信息
+	VkAttachmentReference color_ref{};
+	color_ref.attachment = 0;
+	color_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	//定义深度缓存附件的绑定点和布局信息
+	VkAttachmentReference depth_ref{};
+	depth_ref.attachment = 1;
+	depth_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	//设置附件信息  颜色、深度、解析、保留等
+	VkSubpassDescription sub_pass{};
+	sub_pass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	sub_pass.flags = 0;
+	sub_pass.inputAttachmentCount = 0;
+	sub_pass.pInputAttachments = nullptr;
+	sub_pass.colorAttachmentCount = 1;
+	sub_pass.pColorAttachments = &color_ref;
+	sub_pass.pResolveAttachments = nullptr;
+	sub_pass.pDepthStencilAttachment = include_depth ? &depth_ref : nullptr;
+	sub_pass.preserveAttachmentCount = 0;
+	sub_pass.pPreserveAttachments = nullptr;
+
+	//设置渲染通道中的子通道和附件信息
+	VkRenderPassCreateInfo info{};
+	info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	info.pNext = nullptr;
+	info.attachmentCount = include_depth ? 2 : 1;
+	info.pAttachments = attachments;
+	info.subpassCount = 1;
+	info.pSubpasses = &sub_pass;
+	info.dependencyCount = 0;
+	info.pDependencies = nullptr;
+
+	result = vkCreateRenderPass(_core->_device, &info, nullptr, &_render_pass);
+}
+
+void vk_render::destroy_render_pass()
+{
+	vkDestroyRenderPass(_core->_device, _render_pass, nullptr);
+}
+
+void vk_render::create_frame_buffer(bool include_depth, bool clear)
+{
+	VkResult result;
+	VkImageView attachments[2];
+	attachments[1] = Depth._view;
+
+	VkFramebufferCreateInfo info{};
+	info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	info.pNext = nullptr;
+	info.renderPass = _render_pass;
+	info.attachmentCount = include_depth ? 2 : 1;
+	info.pAttachments = attachments;
+	info.width = _width;
+	info.height = _height;
+	info.layers = 1;
+
+	_frame_buffers.clear();
+	_frame_buffers.resize(_swap_chain.scPublicVars.swapchainImageCount);
+
+	for (int i = 0; i < _swap_chain.scPublicVars.swapchainImageCount; i++)
+	{
+		attachments[0] = _swap_chain.scPublicVars.colorBuffer[i].view;
+		result = vkCreateFramebuffer(_core->_device, &info, nullptr, &_frame_buffers[i]);
+	}
+}
+
+void vk_render::destory_frame_buffer()
+{
+	for (auto& i : _frame_buffers)
+	{
+		vkDestroyFramebuffer(_core->_device, i, nullptr);
+	}
+}

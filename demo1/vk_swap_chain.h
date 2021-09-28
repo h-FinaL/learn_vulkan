@@ -76,62 +76,14 @@ private:
 	VkResult createSwapChainExtensions();
 	void getSupportedFormats();
 	VkResult createSurface();
-	uint32_t getGraphicsQueueWithPresentationSupport() 
-	{
-		uint32_t queueCount = _core->_queue_count;
-		VkPhysicalDevice gpu = _core->_gpu;
-		std::vector<VkQueueFamilyProperties>& queueProps = _core->_context->_device_que_family_props;
-
-		// Iterate over each queue and get presentation status for each.
-		VkBool32* supportsPresent = (VkBool32*)malloc(queueCount * sizeof(VkBool32));
-		for (uint32_t i = 0; i < queueCount; i++) {
-			fpGetPhysicalDeviceSurfaceSupportKHR(gpu, i, scPublicVars.surface, &supportsPresent[i]);
-		}
-
-		// Search for a graphics queue and a present queue in the array of queue
-		// families, try to find one that supports both
-		uint32_t graphicsQueueNodeIndex = UINT32_MAX;
-		uint32_t presentQueueNodeIndex = UINT32_MAX;
-		for (uint32_t i = 0; i < queueCount; i++) {
-			if ((queueProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
-				if (graphicsQueueNodeIndex == UINT32_MAX) {
-					graphicsQueueNodeIndex = i;
-				}
-
-				if (supportsPresent[i] == VK_TRUE) {
-					graphicsQueueNodeIndex = i;
-					presentQueueNodeIndex = i;
-					break;
-				}
-			}
-		}
-
-		if (presentQueueNodeIndex == UINT32_MAX) {
-			// If didn't find a queue that supports both graphics and present, then
-			// find a separate present queue.
-			for (uint32_t i = 0; i < queueCount; ++i) {
-				if (supportsPresent[i] == VK_TRUE) {
-					presentQueueNodeIndex = i;
-					break;
-				}
-			}
-		}
-
-		free(supportsPresent);
-
-		// Generate error if could not find both a graphics and a present queue
-		if (graphicsQueueNodeIndex == UINT32_MAX || presentQueueNodeIndex == UINT32_MAX) {
-			return  UINT32_MAX;
-		}
-
-		return graphicsQueueNodeIndex;
-	}
+	uint32_t getGraphicsQueueWithPresentationSupport();
 
 	void getSurfaceCapabilitiesAndPresentMode();
 	void managePresentMode();
 	void createSwapChainColorImages();
 	void createColorImageView(const VkCommandBuffer& cmd);
 
+public:
 	PFN_vkGetPhysicalDeviceSurfaceSupportKHR		fpGetPhysicalDeviceSurfaceSupportKHR;
 	PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR	fpGetPhysicalDeviceSurfaceCapabilitiesKHR;
 	PFN_vkGetPhysicalDeviceSurfaceFormatsKHR		fpGetPhysicalDeviceSurfaceFormatsKHR;
@@ -145,6 +97,7 @@ private:
 	PFN_vkDestroySwapchainKHR	fpDestroySwapchainKHR;
 	PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
 
+public:
 	SwapChainPublicVariables	scPublicVars;
 	SwapChainPrivateVariables	scPrivateVars;
 	vk_render* _renderer;	// parent
