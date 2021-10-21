@@ -83,17 +83,10 @@ void vk_drawable::record_command_buffer(int current_image, VkCommandBuffer* cmd_
 {
 	// 设置清除颜色值
 	VkClearValue clear_values[2];
-	switch (current_image)
-	{
-	case 0:
-		clear_values[0].color = { 1.0f,0.0f,0.0f,1.0f }; break;
-	case 1:
-		clear_values[0].color = { 0.0f, 1.0f, 0.0f, 1.0f }; break;
-	case 2:
-		clear_values[0].color = { 0.0f, 0.0f, 1.0f, 1.0f }; break;
-	default:
-		clear_values[0].color = { 0.0f, 0.0f,0.0f,0.0f }; break;
-	}
+	clear_values[0].color.float32[0] = 0.0f;
+	clear_values[0].color.float32[1] = 0.0f;
+	clear_values[0].color.float32[2] = 0.0f;
+	clear_values[0].color.float32[3] = 0.0f;
 
 	clear_values[1].depthStencil.depth = 1.0f;
 	clear_values[1].depthStencil.stencil = 0;
@@ -102,6 +95,8 @@ void vk_drawable::record_command_buffer(int current_image, VkCommandBuffer* cmd_
 	render_pass_begin.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	render_pass_begin.renderPass = _render->_render_pass;
 	render_pass_begin.framebuffer = _render->_frame_buffers[current_image];
+	render_pass_begin.renderArea.offset.x = 0;
+	render_pass_begin.renderArea.offset.y = 0;
 	render_pass_begin.renderArea.extent.width = _render->get_width();
 	render_pass_begin.renderArea.extent.height = _render->get_height();
 	render_pass_begin.clearValueCount = 2;
@@ -109,6 +104,20 @@ void vk_drawable::record_command_buffer(int current_image, VkCommandBuffer* cmd_
 
 	//开始录制渲染通道实例
 	vkCmdBeginRenderPass(*cmd_draw, &render_pass_begin, VK_SUBPASS_CONTENTS_INLINE);
+
+	// 绑定流水线对象
+	vkCmdBindPipeline(*cmd_draw, VK_PIPELINE_BIND_POINT_GRAPHICS, *_pipeline);
+
+	// 绑定顶点缓存与指令缓存
+	const VkDeviceSize offsets[1] = { 0 };
+	vkCmdBindVertexBuffers(*cmd_draw, 0, 1, &vertex_buffer.buffer, offsets);
+
+	//定义动态视口
+	init_viewports(cmd_draw);
+
+	//裁剪
+	init_scissors(cmd_draw);
+
 	//完成渲染通道实例录制
 	vkCmdEndRenderPass(*cmd_draw);
 }
@@ -116,21 +125,65 @@ void vk_drawable::record_command_buffer(int current_image, VkCommandBuffer* cmd_
 //渲染可绘制对象
 void vk_drawable::render()
 {
+	VkDevice device = _core->_device;
+	
 	uint32_t& current_color_image = _render->_swap_chain.scPublicVars.currentColorBuffer;
 	VkSwapchainKHR& swap_chain = _render->_swap_chain.scPublicVars.swapChain;
+
+
+	VkFence null_fence = VK_NULL_HANDLE;
 
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 	//获取下一个可用的交换链图像索引
 	VkResult rs = _render->_swap_chain.fpAcquireNextImageKHR(_core->_device, swap_chain,
 		UINT64_MAX, VK_NULL_HANDLE, VK_NULL_HANDLE, &current_color_image);
 
+
+	VkPipelineStageFlags submit_pipeline_stage_flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+	VkSubmitInfo submit_info{};
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.pNext = nullptr;
+	submit_info.waitSemaphoreCount = 1;
+	submit_info.pWaitSemaphores = &_present_complete_semaphore;
+	submit_info.pWaitDstStageMask = &submit_pipeline_stage_flags;
+	submit_info.commandBufferCount = (uint32_t)sizeof(&_cmd_draws[current_color_image]) / sizeof(VkCommandBuffer);
+	submit_info.pCommandBuffers = &_cmd_draws[current_color_image];
+	submit_info.signalSemaphoreCount = 1;
+	submit_info.pSignalSemaphores = &_drawing_complete_semaphore;
+
 	_buffer.submit_command_buffer(_core->_que, &_cmd_draws[current_color_image], nullptr);
 
 	VkPresentInfoKHR present{};
 	present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	present.pNext = nullptr;
 	present.swapchainCount = 1;
 	present.pSwapchains = &swap_chain;
 	present.pImageIndices = &current_color_image;
+	present.pWaitSemaphores = &_drawing_complete_semaphore;
+	present.waitSemaphoreCount = 1;
+	present.pResults = nullptr;
+	rs = _render->_swap_chain.fpQueuePresentKHR(_core->_que, &present);
 
 	rs = _render->_swap_chain.fpQueuePresentKHR(_core->_que, &present);
+}
+
+void vk_drawable::init_viewports(VkCommandBuffer* cmd)
+{
+	viewport.height = _render->get_height();
+	viewport.width = _render->get_width();
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+	viewport.x = 0;
+	viewport.y = 0;
+	vkCmdSetViewport(*cmd, 0, 1, &viewport);
+}
+
+void vk_drawable::init_scissors(VkCommandBuffer* cmd)
+{
+	_scissor.extent.width = _render->get_width();
+	_scissor.extent.height = _render->get_height();
+	_scissor.offset.x = 0;
+	_scissor.offset.y = 0;
+	vkCmdSetScissor(*cmd, 0, 1, &_scissor);
 }

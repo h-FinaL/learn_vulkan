@@ -21,6 +21,10 @@ public:
 	//渲染可绘制对象
 	void render();
 
+	void init_viewports(VkCommandBuffer* cmd);
+
+	void init_scissors(VkCommandBuffer* cmd);
+
 	void record_command_buffer(int current_image, VkCommandBuffer* cmd_draw);
 
 	struct {
@@ -32,8 +36,14 @@ public:
 	VkVertexInputBindingDescription viIpBind;
 	VkVertexInputAttributeDescription viIpAttrb[2];
 
+	VkSemaphore _present_complete_semaphore;
+	VkSemaphore _drawing_complete_semaphore;
+
+	VkPipeline* _pipeline;
 	std::vector<VkCommandBuffer> _cmd_draws;
 	vk_render* _render;
+	VkViewport viewport;
+	VkRect2D _scissor;
 
 	vk_core* _core;
 	vk_buffer _buffer;
